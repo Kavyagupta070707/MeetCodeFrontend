@@ -98,9 +98,9 @@ const Problem = () => {
       }
     }
   return (
-    <div className="h-full bg-base-100 flex flex-col overflow-hidden">
+    <div className="h-full min-h-0 bg-base-100 flex flex-col overflow-hidden">
       <Navbar/>
-      <div className="flex-1">
+      <div className="flex-1 min-h-0 overflow-hidden">
         <PanelGroup direction="horizontal">
           <Panel defaultSize={40} minSize={30}>
             <ProblemDescription

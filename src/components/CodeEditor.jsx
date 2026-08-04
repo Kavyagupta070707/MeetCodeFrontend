@@ -3,7 +3,7 @@ import { Loader2Icon, PlayIcon } from "lucide-react";
 import { LANGUAGE_CONFIG } from "../data/problems.js";
 const CodeEditor = ({language, onLanguageChange, code, isrunning, onRunCode, onCodeChange}) => {
   return (
-    <div className="h-full bg-base-300 flex flex-col">
+    <div className="h-full min-h-0 bg-base-300 flex flex-col">
         <div className="flex items-center justify-between px-4 py-3 bg-base-100 border-t border-base-300">
             <select
               className="select select-sm"
@@ -21,7 +21,7 @@ const CodeEditor = ({language, onLanguageChange, code, isrunning, onRunCode, onC
               {isrunning ? (<><Loader2Icon className="animate-spin h-4 w-4"/>Running...</>) : (<><PlayIcon className="h-4 w-4"/> Run Code</>)}
             </button>
         </div>
-        <div className="flex-1 py-3">
+        <div className="flex-1 min-h-0 py-3">
             <Editor
               height="100%"
               language={LANGUAGE_CONFIG[language].monacoLang}

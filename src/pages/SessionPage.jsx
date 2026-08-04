@@ -1,5 +1,5 @@
 import { useUser } from "@clerk/clerk-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { useEndSession, useJoinSession, useSessionById } from "../hooks/useSessions";
 import { PROBLEMS } from "../data/problems";
@@ -11,8 +11,8 @@ import { Loader2Icon, LogOutIcon, PhoneOffIcon } from "lucide-react";
 import CodeEditor from "../components/CodeEditor.jsx"
 import OutputPanel from "../components/OutputPanel";
 
-import useStreamClient from "../hooks/useStreamClient";
-import { StreamCall, StreamVideo } from "@stream-io/video-react-sdk";
+import useWebRTCCall from "../hooks/useWebRTCCall";
+import useCollaborativeCode from "../hooks/useCollaborativeCode";
 import VideoCallUI from "../components/VideoCallUI";
 
 function SessionPage() {
@@ -31,11 +31,24 @@ function SessionPage() {
   const isHost = session?.host?.clerkId === user?.id;
   const isParticipant = session?.participant?.clerkId === user?.id;
 
-  const { call, channel, chatClient, isInitializingCall, streamClient } = useStreamClient(
+  const {
+    localVideoRef,
+    remoteVideoRef,
+    isInitializingCall,
+    isConnected,
+    isMicOn,
+    isCameraOn,
+    messages,
+    remoteUser,
+    toggleMic,
+    toggleCamera,
+    sendMessage,
+    leaveCall,
+  } = useWebRTCCall(
     session,
     loadingSession,
-    isHost,
-    isParticipant
+    user,
+    isHost || isParticipant
   );
 
   // find the problem data based on session problem title
@@ -51,7 +64,29 @@ function SessionPage() {
   }, [session, problemData]);
 
   const [selectedLanguage, setSelectedLanguage] = useState("javascript");
+  const [loadedStarterKey, setLoadedStarterKey] = useState("");
   const [code, setCode] = useState(problemData?.starterCode?.[selectedLanguage] || "");
+
+  const handleRemoteCodeChange = useCallback((remoteCode, remoteLanguage) => {
+    if (remoteLanguage) {
+      setSelectedLanguage(remoteLanguage);
+    }
+    setCode(remoteCode || "");
+  }, []);
+
+  const handleRemoteLanguageChange = useCallback((remoteLanguage, remoteCode) => {
+    setSelectedLanguage(remoteLanguage);
+    setCode(remoteCode || "");
+    setOutput(null);
+  }, []);
+
+  const { broadcastCodeChange, broadcastLanguageChange } = useCollaborativeCode({
+    roomId: session?.callId,
+    user,
+    canJoin: isHost || isParticipant,
+    onRemoteCodeChange: handleRemoteCodeChange,
+    onRemoteLanguageChange: handleRemoteLanguageChange,
+  });
 
   // auto-join session if user is not already a participant and not the host
   useEffect(() => {
@@ -72,10 +107,13 @@ function SessionPage() {
 
   // update code when problem loads or changes
   useEffect(() => {
-    if (problemData?.starterCode?.[selectedLanguage]) {
+    const starterKey = `${session?.problemTitle || ""}:${selectedLanguage}`;
+
+    if (problemData?.starterCode?.[selectedLanguage] && loadedStarterKey !== starterKey) {
       setCode(problemData.starterCode[selectedLanguage]);
+      setLoadedStarterKey(starterKey);
     }
-  }, [problemData, selectedLanguage]);
+  }, [problemData, selectedLanguage, loadedStarterKey, session?.problemTitle]);
 
   const handleLanguageChange = (e) => {
     const newLang = e.target.value;
@@ -83,7 +121,14 @@ function SessionPage() {
     // use problem-specific starter code
     const starterCode = problemData?.starterCode?.[newLang] || "";
     setCode(starterCode);
+    broadcastLanguageChange(newLang, starterCode);
     setOutput(null);
+  };
+
+  const handleCodeChange = (value) => {
+    const nextCode = value || "";
+    setCode(nextCode);
+    broadcastCodeChange(nextCode, selectedLanguage);
   };
 
   const handleRunCode = async () => {
@@ -244,7 +289,7 @@ function SessionPage() {
                       code={code}
                       isrunning={isRunning}
                       onLanguageChange={handleLanguageChange}
-                      onCodeChange={(value) => setCode(value)}
+                      onCodeChange={handleCodeChange}
                       onRunCode={handleRunCode}
                     />
                   </Panel>
@@ -271,7 +316,7 @@ function SessionPage() {
                     <p className="text-lg">Connecting to video call...</p>
                   </div>
                 </div>
-              ) : !streamClient || !call ? (
+              ) : !session?.callId ? (
                 <div className="h-full flex items-center justify-center">
                   <div className="card bg-base-100 shadow-xl max-w-md">
                     <div className="card-body items-center text-center">
@@ -285,11 +330,20 @@ function SessionPage() {
                 </div>
               ) : (
                 <div className="h-full">
-                  <StreamVideo client={streamClient}>
-                    <StreamCall call={call}>
-                      <VideoCallUI chatClient={chatClient} channel={channel} />
-                    </StreamCall>
-                  </StreamVideo>
+                  <VideoCallUI
+                    localVideoRef={localVideoRef}
+                    remoteVideoRef={remoteVideoRef}
+                    isConnected={isConnected}
+                    isMicOn={isMicOn}
+                    isCameraOn={isCameraOn}
+                    messages={messages}
+                    remoteUser={remoteUser}
+                    currentUser={user}
+                    onToggleMic={toggleMic}
+                    onToggleCamera={toggleCamera}
+                    onSendMessage={sendMessage}
+                    onLeaveCall={leaveCall}
+                  />
                 </div>
               )}
             </div>
