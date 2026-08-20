@@ -21,8 +21,8 @@ export const sessionApi= {
         return response.data;
 
     },
-    joinSession: async(id)=>{
-        const response=await axiosInstance.post(`/api/sessions/${id}/join`);
+    joinSession: async(sessionCode)=>{
+        const response=await axiosInstance.post("/api/sessions/join", { sessionCode });
         return response.data;
 
     },

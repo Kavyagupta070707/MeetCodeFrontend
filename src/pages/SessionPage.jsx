@@ -1,13 +1,14 @@
 import { useUser } from "@clerk/clerk-react";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
-import { useEndSession, useJoinSession, useSessionById } from "../hooks/useSessions";
+import toast from "react-hot-toast";
+import { useEndSession, useSessionById } from "../hooks/useSessions";
 import { PROBLEMS } from "../data/problems";
 import { executeCode } from "../lib/piston";
 import Navbar from "../components/Navbar";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { getDifficultyBadgeClass } from "../lib/utils";
-import { Loader2Icon, LogOutIcon, PhoneOffIcon } from "lucide-react";
+import { ClipboardIcon, Loader2Icon, LogOutIcon, PhoneOffIcon } from "lucide-react";
 import CodeEditor from "../components/CodeEditor.jsx"
 import OutputPanel from "../components/OutputPanel";
 
@@ -22,9 +23,8 @@ function SessionPage() {
   const [output, setOutput] = useState(null);
   const [isRunning, setIsRunning] = useState(false);
 
-  const { data: sessionData, isLoading: loadingSession, refetch } = useSessionById(id);
+  const { data: sessionData, isLoading: loadingSession, error: sessionError } = useSessionById(id);
 
-  const joinSessionMutation = useJoinSession();
   const endSessionMutation = useEndSession();
 
   const session = sessionData?.session;
@@ -58,7 +58,7 @@ function SessionPage() {
     useEffect(() => {
     if (session) {
       console.log("Session data:", session);
-      console.log("Session problem:", session.problem);
+      console.log("Session problem:", session.problemTitle);
       console.log("Problem data found:", problemData);
     }
   }, [session, problemData]);
@@ -87,16 +87,6 @@ function SessionPage() {
     onRemoteCodeChange: handleRemoteCodeChange,
     onRemoteLanguageChange: handleRemoteLanguageChange,
   });
-
-  // auto-join session if user is not already a participant and not the host
-  useEffect(() => {
-    if (!session || !user || loadingSession) return;
-    if (isHost || isParticipant) return;
-
-    joinSessionMutation.mutate(id, { onSuccess: refetch });
-
-    // remove the joinSessionMutation, refetch from dependencies to avoid infinite loop
-  }, [session, user, loadingSession, isHost, isParticipant, id]);
 
   // redirect the "participant" when session ends
   useEffect(() => {
@@ -147,6 +137,41 @@ function SessionPage() {
     }
   };
 
+  const handleCopySessionCode = async () => {
+    if (!session?.sessionCode) return;
+
+    try {
+      await navigator.clipboard.writeText(session.sessionCode);
+      toast.success("Session code copied");
+    } catch {
+      toast.error("Could not copy session code");
+    }
+  };
+
+  if (!loadingSession && sessionError) {
+    return (
+      <div className="min-h-screen bg-base-300">
+        <Navbar />
+        <div className="container mx-auto px-6 py-16">
+          <div className="card bg-base-100 border-2 border-primary/20 max-w-xl mx-auto">
+            <div className="card-body items-center text-center">
+              <div className="w-20 h-20 bg-primary/10 rounded-3xl flex items-center justify-center mb-2">
+                <PhoneOffIcon className="w-10 h-10 text-primary" />
+              </div>
+              <h1 className="text-2xl font-black">Session code required</h1>
+              <p className="text-base-content/70">
+                Join this session from the dashboard using the code shared by the host.
+              </p>
+              <button className="btn btn-primary mt-4" onClick={() => navigate("/dashboard")}>
+                Back to Dashboard
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="h-screen bg-base-100 flex flex-col">
       <Navbar />
@@ -173,6 +198,15 @@ function SessionPage() {
                           Host: {session?.host?.name || "Loading..."} •{" "}
                           {session?.participant ? 2 : 1}/2 participants
                         </p>
+                        {isHost && session?.sessionCode && (
+                          <button
+                            className="btn btn-outline btn-sm gap-2 mt-3"
+                            onClick={handleCopySessionCode}
+                          >
+                            <ClipboardIcon className="w-4 h-4" />
+                            Code {session.sessionCode}
+                          </button>
+                        )}
                       </div>
 
                       <div className="flex items-center gap-3">

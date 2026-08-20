@@ -1,4 +1,4 @@
-import {useQuery, useMutation, useQueryClient} from '@tanstack/react-query';
+import {useQuery, useMutation} from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import { sessionApi } from '../api/sessions.js';
 
@@ -34,7 +34,7 @@ export const useRecentSessions= ()=>{
 
 export const useSessionById= (id)=>{
     const result = useQuery({
-        queryKey: ['session'],
+        queryKey: ['session', id],
         queryFn: ()=> sessionApi.getSessionbyId(id),
         enabled: !!id,
         refetchInterval: 5000,

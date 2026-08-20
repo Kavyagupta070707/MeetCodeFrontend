@@ -1,11 +1,10 @@
-import { useUser } from "@clerk/clerk-react";
 import { useNavigate } from "react-router"
-import { useActiveSessions, useCreateSession, useRecentSessions } from "../hooks/useSessions.js";
+import { useActiveSessions, useCreateSession, useJoinSession, useRecentSessions } from "../hooks/useSessions.js";
 import Navbar from "../components/Navbar.jsx";
 import WelcomeSection from "../components/WelcomeSection.jsx";
 import { useState } from "react";
 import toast from "react-hot-toast";
-import ActiveSessions from "../components/ActiveSessions.jsx";
+import JoinSession from "../components/JoinSession.jsx";
 import StatsCards from "../components/StatsCards.jsx";
 import RecentSessions from "../components/RecentSessions.jsx";
 import CreateSessionModal from "../components/CreateSessionModel.jsx";
@@ -13,11 +12,12 @@ import CreateSessionModal from "../components/CreateSessionModel.jsx";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { user } = useUser()
   const [showModel, setShowModel] = useState(false);
   const [roomConfig, setRoomConfig] = useState({ problem: "", difficulty: "" })
+  const [sessionCode, setSessionCode] = useState("");
 
   const createSession = useCreateSession();
+  const joinSession = useJoinSession();
   const { data: recentSessionsData, isLoading: loadingRecentSessions } = useRecentSessions();
   const { data: activeSessionsData, isLoading: loadingActiveSessions } = useActiveSessions()
 
@@ -40,13 +40,25 @@ const Dashboard = () => {
       })
 
   }
+
+  const handleJoinSession = (event) => {
+    event.preventDefault();
+
+    if (sessionCode.trim().length !== 6) {
+      toast.error("Enter a valid session code")
+      return;
+    }
+
+    joinSession.mutate(sessionCode.trim().toUpperCase(), {
+      onSuccess: (data) => {
+        setSessionCode("");
+        navigate(`/session/${data.session._id}`)
+      }
+    })
+  }
+
   const activeSessions = activeSessionsData?.sessions || [];
   const recentSessions = recentSessionsData?.sessions || [];
- const isUserInSession = (session) => {
-    if (!user.id) return false;
-
-    return session.host?.clerkId === user.id || session.participant?.clerkId === user.id;
-  };
 
   return (
     <>
@@ -61,10 +73,11 @@ const Dashboard = () => {
               activeSessionsCount={activeSessions.length}
               recentSessionsCount={recentSessions.length}
             />
-            <ActiveSessions
-              sessions={activeSessions}
-              isLoading={loadingActiveSessions}
-              isUserInSession={isUserInSession}
+            <JoinSession
+              sessionCode={sessionCode}
+              setSessionCode={setSessionCode}
+              onJoinSession={handleJoinSession}
+              isJoining={joinSession.isPending || loadingActiveSessions}
             />
           </div>
 

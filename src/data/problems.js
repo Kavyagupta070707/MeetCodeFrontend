@@ -76,7 +76,7 @@ vector<int> twoSum(vector<int>& nums, int target) {
 
 void printVector(const vector<int>& values) {
     cout << "[";
-    for (int i = 0; i < values.size(); i++) {
+    for (int i = 0; i < (int)values.size(); i++) {
         if (i > 0) cout << ", ";
         cout << values[i];
     }
@@ -176,7 +176,7 @@ void reverseString(vector<char>& s) {
 
 void printVector(const vector<char>& values) {
     cout << "[";
-    for (int i = 0; i < values.size(); i++) {
+    for (int i = 0; i < (int)values.size(); i++) {
         if (i > 0) cout << ", ";
         cout << values[i];
     }
