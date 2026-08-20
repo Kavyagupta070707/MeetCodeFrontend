@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router"
-import { useActiveSessions, useCreateSession, useJoinSession, useRecentSessions } from "../hooks/useSessions.js";
+import { useCreateSession, useJoinSession, useRecentSessions } from "../hooks/useSessions.js";
 import Navbar from "../components/Navbar.jsx";
 import WelcomeSection from "../components/WelcomeSection.jsx";
 import { useState } from "react";
@@ -21,7 +21,6 @@ const Dashboard = () => {
   const joinSession = useJoinSession();
   const { data: currentUserData } = useCurrentUser();
   const { data: recentSessionsData, isLoading: loadingRecentSessions } = useRecentSessions();
-  const { data: activeSessionsData, isLoading: loadingActiveSessions } = useActiveSessions()
 
   const handleCreateRoom = async () => {
     if (!roomConfig.problem || !roomConfig.difficulty) {
@@ -59,7 +58,6 @@ const Dashboard = () => {
     })
   }
 
-  const activeSessions = activeSessionsData?.sessions || [];
   const recentSessions = recentSessionsData?.sessions || [];
 
   return (
@@ -68,24 +66,23 @@ const Dashboard = () => {
         <Navbar />
         <WelcomeSection onCreateSession={() => setShowModel(true)} />
 
-        {/* Grid layout */}
-        <div className="container mx-auto px-6 pb-16">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <StatsCards
-              activeSessionsCount={activeSessions.length}
-              recentSessionsCount={recentSessions.length}
-              rating={currentUserData?.user?.rating ?? 1000}
-            />
-            <JoinSession
-              sessionCode={sessionCode}
-              setSessionCode={setSessionCode}
-              onJoinSession={handleJoinSession}
-              isJoining={joinSession.isPending || loadingActiveSessions}
-            />
+        <main className="max-w-7xl mx-auto px-6 pb-16 space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+            <div className="lg:col-span-4">
+              <StatsCards rating={currentUserData?.user?.rating ?? 1000} />
+            </div>
+            <div className="lg:col-span-8">
+              <JoinSession
+                sessionCode={sessionCode}
+                setSessionCode={setSessionCode}
+                onJoinSession={handleJoinSession}
+                isJoining={joinSession.isPending}
+              />
+            </div>
           </div>
 
           <RecentSessions sessions={recentSessions} isLoading={loadingRecentSessions} />
-        </div>
+        </main>
       </div>
 
       <CreateSessionModal

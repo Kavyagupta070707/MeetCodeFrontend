@@ -1,7 +1,9 @@
 import { useNavigate } from "react-router";
 import { Loader2Icon, SwordsIcon, TrophyIcon, ZapIcon } from "lucide-react";
 import Navbar from "../components/Navbar.jsx";
+import RatingHistoryChart from "../components/RatingHistoryChart.jsx";
 import { useMatchOneVOne } from "../hooks/useOneVOne.js";
+import { useCurrentUser } from "../hooks/useCurrentUser.js";
 
 const DIFFICULTIES = [
   {
@@ -27,6 +29,7 @@ const DIFFICULTIES = [
 function OneVOne() {
   const navigate = useNavigate();
   const matchOneVOne = useMatchOneVOne();
+  const { data: currentUserData } = useCurrentUser();
 
   const handleMatch = (difficulty) => {
     matchOneVOne.mutate(difficulty, {
@@ -85,6 +88,10 @@ function OneVOne() {
               </button>
             );
           })}
+        </div>
+
+        <div className="mt-8">
+          <RatingHistoryChart user={currentUserData?.user} />
         </div>
       </main>
     </div>

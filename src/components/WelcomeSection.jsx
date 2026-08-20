@@ -1,37 +1,44 @@
 
 import { useUser } from "@clerk/clerk-react";
-import { ArrowRightIcon, SparklesIcon, ZapIcon } from "lucide-react";
+import { Link } from "react-router";
+import { ArrowRightIcon, BookOpenIcon, SwordsIcon, ZapIcon } from "lucide-react";
 
 function WelcomeSection({ onCreateSession }) {
   const { user } = useUser();
 
   return (
-    <div className="relative overflow-hidden">
-      <div className="relative max-w-7xl mx-auto px-6 py-16">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-                <SparklesIcon className="w-6 h-6 text-white" />
-              </div>
-              <h1 className="text-5xl font-black bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-                Welcome back, {user?.firstName || "there"}!
+    <div className="relative">
+      <div className="relative max-w-7xl mx-auto px-6 pt-8 pb-5">
+        <div className="py-5 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+          <div className="min-w-0">
+            <div className="mb-3">
+              <h1 className="text-3xl md:text-4xl font-black text-base-content leading-tight">
+                Welcome back,{" "}
+                <span className="text-primary">{user?.firstName || "there"}</span>!
               </h1>
             </div>
-            <p className="text-xl text-base-content/60 ml-16">
-              Ready to level up your coding skills?
+            <p className="text-base text-base-content/65">
+              Create a private room, join by code, or jump into a rated 1v1 duel.
             </p>
           </div>
-          <button
-            onClick={onCreateSession}
-            className="group px-8 py-4 bg-gradient-to-r from-primary to-secondary rounded-2xl transition-all duration-200 hover:opacity-90"
-          >
-            <div className="flex items-center gap-3 text-white font-bold text-lg">
-              <ZapIcon className="w-6 h-6" />
+          <div className="flex flex-col sm:flex-row gap-3">
+            <button
+              onClick={onCreateSession}
+              className="group btn btn-primary h-12 px-5 rounded-lg text-primary-content"
+            >
+              <ZapIcon className="w-5 h-5" />
               <span>Create Session</span>
               <ArrowRightIcon className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </div>
-          </button>
+            </button>
+            <Link to="/one-v-one" className="btn btn-outline h-12 px-5 rounded-lg gap-2">
+              <SwordsIcon className="w-5 h-5" />
+              <span>Start 1v1</span>
+            </Link>
+            <Link to="/problems" className="btn btn-outline h-12 px-5 rounded-lg gap-2">
+              <BookOpenIcon className="w-5 h-5" />
+              <span>Practice</span>
+            </Link>
+          </div>
         </div>
       </div>
     </div>

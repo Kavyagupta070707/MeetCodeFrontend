@@ -11,42 +11,24 @@ function Navbar() {
     location.pathname === path || (path === "/one-v-one" && location.pathname.startsWith(path));
 
   return (
-    <nav className="bg-base-100/80 backdrop-blur-md border-b border-primary/20 sticky top-0 z-50 shadow-lg">
-      <div className="max-w-7xl mx-auto p-4 flex items-center justify-between">
+    <nav className="bg-base-100/90 backdrop-blur-md border-b border-base-300 sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
         {/* LOGO */}
-        <Link to={"/"} className='flex items-center gap-3 hover:scale-105 transition-transform duration-200'>
-              <div className='size-10 rounded-xl  flex items-center justify-center shadow-lg'>
-                <HeartHandshake />
+        <Link to={"/"} className="flex items-center gap-3">
+              <div className="size-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                <HeartHandshake className="size-5" />
               </div>
 
-              <div className='flex flex-col'>
-                <span className=' text-xl   font-bold bg-clip-text  tracking-wider'>
+              <div className="flex flex-col">
+                <span className="text-xl font-bold tracking-wide leading-none">
                   MeetCode
                 </span>
-                <span className='text-xs text-base-content/60 font-medium '> Let's Code Together</span>
+                <span className="text-xs text-base-content/60 font-medium mt-1">Let's Code Together</span>
               </div>
             </Link>
 
-        <div className="flex items-center gap-1">
-          {/* PROBLEMS PAGE LINK */}
-          <Link
-            to={"/problems"}
-            className={`px-4 py-2.5 rounded-lg transition-all duration-200 
-              ${
-                isActive("/problems")
-                  ? "bg-primary text-primary-content"
-                  : "hover:bg-base-200 text-base-content/70 hover:text-base-content"
-              }
-              
-              `}
-          >
-            <div className="flex items-center gap-x-2.5">
-              <BookOpenIcon className="size-4" />
-              <span className="font-medium hidden sm:inline">Problems</span>
-            </div>
-          </Link>
-
-          {/* DASHBORD PAGE LINK */}
+        <div className="flex items-center gap-2">
+          {/* DASHBOARD PAGE LINK */}
           <Link
             to={"/dashboard"}
             className={`px-4 py-2.5 rounded-lg transition-all duration-200 
@@ -60,7 +42,7 @@ function Navbar() {
           >
             <div className="flex items-center gap-x-2.5">
               <LayoutDashboardIcon className="size-4" />
-              <span className="font-medium hidden sm:inline">Dashbord</span>
+              <span className="font-medium hidden sm:inline">Dashboard</span>
             </div>
           </Link>
 
@@ -81,7 +63,25 @@ function Navbar() {
             </div>
           </Link>
 
-          <div className="ml-4 mt-2">
+          {/* PROBLEMS PAGE LINK */}
+          <Link
+            to={"/problems"}
+            className={`px-4 py-2.5 rounded-lg transition-all duration-200 
+              ${
+                isActive("/problems")
+                  ? "bg-primary text-primary-content"
+                  : "hover:bg-base-200 text-base-content/70 hover:text-base-content"
+              }
+              
+              `}
+          >
+            <div className="flex items-center gap-x-2.5">
+              <BookOpenIcon className="size-4" />
+              <span className="font-medium hidden sm:inline">Problems</span>
+            </div>
+          </Link>
+
+          <div className="ml-3 flex items-center">
             <UserButton />
           </div>
         </div>

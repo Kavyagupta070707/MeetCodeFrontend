@@ -1,47 +1,49 @@
-import { StarIcon, TrophyIcon, UsersIcon } from "lucide-react";
+import { Link } from "react-router";
+import { ArrowRightIcon, StarIcon, SwordsIcon } from "lucide-react";
 
-function StatsCards({ activeSessionsCount, recentSessionsCount, rating }) {
+function getRatingTier(rating) {
+  if (rating >= 1400) return { name: "Champion", floor: 1400, next: null };
+  if (rating >= 1200) return { name: "Duelist", floor: 1200, next: 1400 };
+  if (rating >= 1100) return { name: "Problem Solver", floor: 1100, next: 1200 };
+  if (rating >= 1000) return { name: "Rising Coder", floor: 1000, next: 1100 };
+  return { name: "Rookie", floor: 0, next: 1000 };
+}
+
+function StatsCards({ rating }) {
+  const tier = getRatingTier(rating);
+  const progress = tier.next
+    ? Math.min(100, Math.max(0, ((rating - tier.floor) / (tier.next - tier.floor)) * 100))
+    : 100;
+
   return (
-    <div className="lg:col-span-1 grid grid-cols-1 gap-6">
-      <div className="card bg-base-100 border-2 border-accent/20 hover:border-accent/40">
-        <div className="card-body">
-          <div className="flex items-center justify-between mb-3">
-            <div className="p-3 bg-accent/10 rounded-2xl">
-              <StarIcon className="w-7 h-7 text-accent" />
-            </div>
-            <div className="badge badge-accent">1v1</div>
-          </div>
-          <div className="text-4xl font-black mb-1">{rating}</div>
-          <div className="text-sm opacity-60">Rating</div>
+    <div className="rounded-lg bg-base-100 border border-base-300 p-6 h-full">
+      <div className="flex items-center justify-between gap-3">
+        <div className="size-12 rounded-lg flex items-center justify-center text-accent bg-accent/10">
+          <StarIcon className="size-6" />
         </div>
+        <span className="badge badge-ghost">1v1</span>
+      </div>
+      <div className="mt-7 text-4xl font-black text-base-content">{rating}</div>
+      <div className="mt-1 text-sm text-base-content/60">Rating</div>
+
+      <div className="mt-6 rounded-lg bg-base-200/70 border border-base-300 p-4">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-sm text-base-content/60">Rank</p>
+            <p className="font-bold text-base-content">{tier.name}</p>
+          </div>
+          <span className="text-xs text-base-content/50">
+            {tier.next ? `${tier.next - rating} pts left` : "Top tier"}
+          </span>
+        </div>
+        <progress className="progress progress-primary w-full mt-4" value={progress} max="100" />
       </div>
 
-      {/* Active Count */}
-      <div className="card bg-base-100 border-2 border-primary/20 hover:border-primary/40">
-        <div className="card-body">
-          <div className="flex items-center justify-between mb-3">
-            <div className="p-3 bg-primary/10 rounded-2xl">
-              <UsersIcon className="w-7 h-7 text-primary" />
-            </div>
-            <div className="badge badge-primary">Live</div>
-          </div>
-          <div className="text-4xl font-black mb-1">{activeSessionsCount}</div>
-          <div className="text-sm opacity-60">Your Active Sessions</div>
-        </div>
-      </div>
-
-      {/* Recent Count */}
-      <div className="card bg-base-100 border-2 border-secondary/20 hover:border-secondary/40">
-        <div className="card-body">
-          <div className="flex items-center justify-between mb-3">
-            <div className="p-3 bg-secondary/10 rounded-2xl">
-              <TrophyIcon className="w-7 h-7 text-secondary" />
-            </div>
-          </div>
-          <div className="text-4xl font-black mb-1">{recentSessionsCount}</div>
-          <div className="text-sm opacity-60">Total Sessions</div>
-        </div>
-      </div>
+      <Link to="/one-v-one" className="btn btn-primary w-full mt-5 rounded-lg gap-2">
+        <SwordsIcon className="size-4" />
+        Play 1v1
+        <ArrowRightIcon className="size-4" />
+      </Link>
     </div>
   );
 }
