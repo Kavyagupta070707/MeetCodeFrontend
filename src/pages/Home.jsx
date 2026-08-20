@@ -1,18 +1,40 @@
-import { SignInButton, useUser } from '@clerk/clerk-react';
-import React from 'react'
-import { useEffect } from 'react';
-import { toast } from 'react-hot-toast';
-import {Link, useNavigate} from 'react-router'
+import { SignInButton, useUser } from "@clerk/clerk-react";
+import { useEffect } from "react";
+import { Link, useNavigate } from "react-router";
 import {
   ArrowRightIcon,
   CheckIcon,
   Code2Icon,
-  SparklesIcon,
+  HeartHandshakeIcon,
+  LockIcon,
+  SwordsIcon,
   UsersIcon,
   VideoIcon,
-  ZapIcon,
-  HeartHandshake
 } from "lucide-react";
+
+const highlights = [
+  "Private rooms",
+  "Rated 1v1 coding duels",
+  "Practice problems",
+];
+
+const workflows = [
+  {
+    icon: LockIcon,
+    title: "Create a private room",
+    description: "Start a room and share the code only with your partner.",
+  },
+  {
+    icon: SwordsIcon,
+    title: "Match into a 1v1 duel",
+    description: "Pick a difficulty and get a timed challenge with another coder.",
+  },
+  {
+    icon: Code2Icon,
+    title: "Solve in the browser",
+    description: "Read the prompt, write code, run tests, and finish the problem.",
+  },
+];
 
 const Home = () => {
   const { isSignedIn, isLoaded } = useUser();
@@ -20,175 +42,175 @@ const Home = () => {
 
   useEffect(() => {
     if (isLoaded && isSignedIn) {
-      navigate('/dashboard');
+      navigate("/dashboard");
     }
   }, [isLoaded, isSignedIn, navigate]);
 
-  // Show nothing while checking auth status or redirecting
   if (!isLoaded || isSignedIn) {
     return null;
   }
+
   return (
-    
-    <>
-      <div className='bg-gradient-to-br from-base-100 via-base-200 to-base-300'>
-        <nav className='bg-base-100/80 backdrop-blur-md border-b border-primary/20 sticky top-0 z-50 shadow-lg'>
-          <div className='max-w-7xl mx-auto p-4 flex items-center justify-between'>
-            <Link to={"/"} className='flex items-center gap-3 hover:scale-105 transition-transform duration-200'>
-              <div className='size-10 rounded-xl  flex items-center justify-center shadow-lg'>
-                <HeartHandshake />
-              </div>
+    <div className="min-h-screen bg-base-300 text-base-content">
+      <nav className="sticky top-0 z-50 border-b border-base-100/10 bg-base-300/85 backdrop-blur-md">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4">
+          <Link to="/" className="flex items-center gap-3">
+            <div className="flex size-10 items-center justify-center rounded-lg bg-base-100 text-primary">
+              <HeartHandshakeIcon className="size-5" />
+            </div>
+            <div>
+              <span className="block text-xl font-black">MeetCode</span>
+              <span className="block text-xs font-medium text-base-content/55">
+                Code together. Compete better.
+              </span>
+            </div>
+          </Link>
 
-              <div className='flex flex-col'>
-                <span className=' text-xl   font-bold bg-clip-text  tracking-wider'>
-                  MeetCode
-                </span>
-                <span className='text-xs text-base-content/60 font-medium '> Let's Code Together</span>
-              </div>
-            </Link>
+          <SignInButton mode="modal" fallbackRedirectUrl="/dashboard">
+            <button className="btn btn-primary rounded-lg px-5">
+              Get Started
+              <ArrowRightIcon className="size-4" />
+            </button>
+          </SignInButton>
+        </div>
+      </nav>
 
-            <SignInButton mode='modal' fallbackRedirectUrl="/dashboard">
-                <button className='group px-6 py-3 bg-amber-500 rounded-xl text-white font-semibold shadow-lg text-sm hover:shadow-xl transition-all duration-200 hover:scale-105 flex items-center gap-2'>
-                  <span>Get Started</span>
-                </button>
-            </SignInButton>
-          </div>
-        </nav>
-      <div className="max-w-7xl mx-auto px-4 py-20">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* LEFT CONTENT */}
-          <div className="space-y-8">
-            <div className="badge badge-primary badge-lg">
-              <ZapIcon className="size-4" />
-              Real-time Collaboration
+      <main>
+        <section className="mx-auto grid min-h-[78vh] max-w-7xl items-center gap-12 px-5 py-16 lg:grid-cols-[0.95fr_1.05fr]">
+          <div className="max-w-3xl">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-lg border border-primary/30 px-4 py-2 text-sm font-bold text-primary">
+              <SwordsIcon className="size-4" />
+              Private rooms and rated 1v1 duels
             </div>
 
-            <h1 className="text-5xl lg:text-7xl font-black leading-tight">
-              <span className="bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">
-                Code Together,
-              </span>
-              <br />
-              <span className="text-base-content">Learn Together</span>
+            <h1 className="text-5xl font-black leading-tight sm:text-6xl lg:text-7xl">
+              MeetCode
+              <span className="block text-primary">code with real people.</span>
             </h1>
 
-            <p className="text-xl text-base-content/70 leading-relaxed max-w-xl">
-              The ultimate platform for collaborative coding interviews and pair programming.
-              Connect face-to-face, code in real-time, and ace your technical interviews.
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-base-content/75">
+              Create private coding rooms, invite by session code, practice problems, or start a
+              timed 1v1 duel. Everything is built around getting into the editor fast and solving.
             </p>
 
-            {/* FEATURE PILLS */}
-            <div className="flex flex-wrap gap-3">
-              <div className="badge badge-lg badge-outline">
-                <CheckIcon className="size-4 text-success" />
-                Live Video Chat
-              </div>
-              <div className="badge badge-lg badge-outline">
-                <CheckIcon className="size-4 text-success" />
-                Code Editor
-              </div>
-              <div className="badge badge-lg badge-outline">
-                <CheckIcon className="size-4 text-success" />
-                Multi-Language
-              </div>
-            </div>
-
-            {/* CTA Buttons */}
-            <div className="flex flex-wrap gap-4">
+            <div className="mt-10 flex flex-wrap gap-4">
               <SignInButton mode="modal" fallbackRedirectUrl="/dashboard">
-                <button className="btn btn-primary btn-lg">
-                  Start Coding Now
+                <button className="btn btn-primary btn-lg rounded-lg">
+                  Start Coding
                   <ArrowRightIcon className="size-5" />
                 </button>
               </SignInButton>
-
-              <button className="btn btn-outline btn-lg">
-                <VideoIcon className="size-5" />
-                Watch Demo
-              </button>
-            </div>
-
-            {/* STATS */}
-            <div className="stats stats-vertical lg:stats-horizontal bg-base-100 shadow-lg">
-              <div className="stat">
-                <div className="stat-value text-primary">10K+</div>
-                <div className="stat-title">Active Users</div>
-              </div>
-              <div className="stat">
-                <div className="stat-value text-secondary">50K+</div>
-                <div className="stat-title">Sessions</div>
-              </div>
-              <div className="stat">
-                <div className="stat-value text-accent">99.9%</div>
-                <div className="stat-title">Uptime</div>
-              </div>
+              <SignInButton mode="modal" fallbackRedirectUrl="/dashboard">
+                <button className="btn btn-outline btn-lg rounded-lg">
+                  Find a 1v1
+                  <SwordsIcon className="size-5" />
+                </button>
+              </SignInButton>
             </div>
           </div>
 
-          {/* RIGHT IMAGE */}
-          <img
-            src="/hero.png"
-            alt="CodeCollab Platform"
-            className="w-full h-auto rounded-3xl shadow-2xl border-4 border-base-100 hover:scale-105 transition-transform duration-500"
-          />
-        </div>
-      </div>
+          <div className="space-y-6">
+            <img
+              src="/hero.png"
+              alt="MeetCode collaborative coding workspace"
+              className="w-full rounded-lg border border-base-content/10 shadow-2xl"
+            />
 
-      {/* FEATURES SECTION */}
-      <div className="max-w-7xl mx-auto px-4 py-20">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold mb-4">
-            Everything You Need to <span className="text-primary font-mono">Succeed</span>
-          </h2>
-          <p className="text-lg text-base-content/70 max-w-2xl mx-auto">
-            Powerful features designed to make your coding interviews seamless and productive
-          </p>
-        </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              {highlights.map((item) => (
+                <span
+                  key={item}
+                  className="inline-flex min-h-14 items-center justify-center gap-2 rounded-lg border border-primary/25 px-3 py-3 text-center text-sm font-semibold text-primary"
+                >
+                  <CheckIcon className="size-4 text-base-content" />
+                  {item}
+                </span>
+              ))}
+            </div>
+          </div>
+        </section>
 
-        {/* FEATURES GRID */}
-        <div className="grid md:grid-cols-3 gap-8">
-          {/* Feature 1 */}
-          <div className="card bg-base-100 shadow-xl">
-            <div className="card-body items-center text-center">
-              <div className="size-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-4">
-                <VideoIcon className="size-8 text-primary" />
+        <section className="mx-auto max-w-7xl px-5 py-16">
+          <div className="py-8">
+            <div className="grid gap-10 lg:grid-cols-[0.65fr_1.35fr] lg:items-start">
+              <div className="max-w-xl">
+                <p className="font-bold text-primary">Built for coding practice</p>
+                <h2 className="mt-3 max-w-2xl text-3xl font-black leading-tight sm:text-4xl">
+                  Start a session, solve the problem, see the result.
+                </h2>
+                <p className="mt-5 text-base leading-7 text-base-content/65">
+                  No public room hunting and no noisy lobby. MeetCode keeps the path from invite
+                  or match to editor short.
+                </p>
               </div>
-              <h3 className="card-title">HD Video Call</h3>
-              <p className="text-base-content/70">
-                Crystal clear video and audio for seamless communication during interviews
+
+              <div className="grid gap-5 md:grid-cols-3">
+                {workflows.map(({ icon: Icon, title, description }, index) => (
+                  <div
+                    key={title}
+                    className="rounded-lg border border-base-content/10 bg-base-100 p-6"
+                  >
+                    <div className="mb-5 flex items-center justify-between">
+                      <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-base-300 text-primary">
+                        <Icon className="size-6" />
+                      </div>
+                      <p className="text-sm font-bold text-base-content/45">0{index + 1}</p>
+                    </div>
+                    <h3 className="text-xl font-black leading-snug">{title}</h3>
+                    <p className="mt-3 leading-7 text-base-content/65">{description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-7xl px-5 pb-20 pt-8">
+          <div className="mb-14 text-center">
+            <h2 className="text-3xl font-black leading-tight text-primary sm:text-4xl">
+              Everything You Need to <span className="text-base-content">Succeed</span>
+            </h2>
+            <p className="mx-auto mt-5 max-w-3xl text-base leading-7 text-base-content/65">
+              Powerful features designed to make your coding interviews seamless and productive.
+            </p>
+          </div>
+
+          <div className="grid gap-8 md:grid-cols-3">
+            <div className="rounded-lg border border-base-content/10 bg-base-100 p-8 text-center shadow-xl shadow-base-300/30">
+              <div className="mx-auto flex size-20 items-center justify-center rounded-lg bg-base-300 text-primary">
+                <VideoIcon className="size-9" />
+              </div>
+              <h3 className="mt-8 text-xl font-black">HD Video Call</h3>
+              <p className="mx-auto mt-4 max-w-sm leading-7 text-base-content/65">
+                Clear video and audio for private coding sessions and interview practice.
+              </p>
+            </div>
+
+            <div className="rounded-lg border border-base-content/10 bg-base-100 p-8 text-center shadow-xl shadow-base-300/30">
+              <div className="mx-auto flex size-20 items-center justify-center rounded-lg bg-base-300 text-primary">
+                <Code2Icon className="size-9" />
+              </div>
+              <h3 className="mt-8 text-xl font-black">Live Code Editor</h3>
+              <p className="mx-auto mt-4 max-w-sm leading-7 text-base-content/65">
+                Write, run, and compare solutions with language-aware starter code.
+              </p>
+            </div>
+
+            <div className="rounded-lg border border-base-content/10 bg-base-100 p-8 text-center shadow-xl shadow-base-300/30">
+              <div className="mx-auto flex size-20 items-center justify-center rounded-lg bg-base-300 text-primary">
+                <UsersIcon className="size-9" />
+              </div>
+              <h3 className="mt-8 text-xl font-black">Easy Collaboration</h3>
+              <p className="mx-auto mt-4 max-w-sm leading-7 text-base-content/65">
+                Join by code, match by difficulty, and stay focused on the problem.
               </p>
             </div>
           </div>
-
-          {/* Feature 2 */}
-          <div className="card bg-base-100 shadow-xl">
-            <div className="card-body items-center text-center">
-              <div className="size-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-4">
-                <Code2Icon className="size-8 text-primary" />
-              </div>
-              <h3 className="card-title">Live Code Editor</h3>
-              <p className="text-base-content/70">
-                Collaborate in real-time with syntax highlighting and multiple language support
-              </p>
-            </div>
-          </div>
-
-          {/* Feature 3 */}
-          <div className="card bg-base-100 shadow-xl">
-            <div className="card-body items-center text-center">
-              <div className="size-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-4">
-                <UsersIcon className="size-8 text-primary" />
-              </div>
-              <h3 className="card-title">Easy Collaboration</h3>
-              <p className="text-base-content/70">
-                Share your screen, discuss solutions, and learn from each other in real-time
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+        </section>
+      </main>
     </div>
-    </>
-  )
-}
+  );
+};
 
-export default Home
+export default Home;

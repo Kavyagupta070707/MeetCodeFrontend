@@ -15,7 +15,7 @@ export const useOneVOneSession = (id) => {
     queryKey: ["oneVOneSession", id],
     queryFn: () => oneVOneApi.getSessionById(id),
     enabled: !!id,
-    refetchInterval: 2000,
+    refetchInterval: 1000,
   });
 };
 

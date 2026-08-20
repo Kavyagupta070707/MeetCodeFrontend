@@ -59,11 +59,50 @@ function formatDuration(milliseconds) {
   }`;
 }
 
+function getPlayerImage(player) {
+  return player?.profileimage || player?.profileImage || "";
+}
+
+function getPlayerInitials(player, fallback) {
+  const name = player?.name || fallback;
+  return name
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
+
+function FaceoffPlayerCard({ player, label }) {
+  const playerName = player?.name || label;
+  const playerImage = getPlayerImage(player);
+
+  return (
+    <div className="rounded-lg border border-base-300 bg-base-200/70 p-6 text-center">
+      <div className="mx-auto mb-4 size-24 overflow-hidden rounded-full border-2 border-primary/40 bg-base-100">
+        {playerImage ? (
+          <img src={playerImage} alt={playerName} className="h-full w-full object-cover" />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-2xl font-black text-primary">
+            {getPlayerInitials(player, label)}
+          </div>
+        )}
+      </div>
+      <p className="text-xs font-bold uppercase text-base-content/50">{label}</p>
+      <h3 className="mt-1 truncate text-2xl font-black text-base-content">{playerName}</h3>
+      <div className="mt-4 rounded-lg bg-base-100 px-4 py-3">
+        <p className="text-xs text-base-content/50">Rating</p>
+        <p className="text-2xl font-black text-primary">{player?.rating ?? 1000}</p>
+      </div>
+    </div>
+  );
+}
+
 function OneVOneSessionPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useUser();
-  const [now, setNow] = useState(null);
+  const [now, setNow] = useState(() => Date.now());
   const [selectedLanguage, setSelectedLanguage] = useState("javascript");
   const [codeByStarterKey, setCodeByStarterKey] = useState({});
   const [output, setOutput] = useState(null);
@@ -86,10 +125,15 @@ function OneVOneSessionPage() {
   const isMatchActive = session?.status === "active";
   const isCompleted = session?.status === "completed";
   const isWaiting = session?.status === "waiting";
-  const timerBase = now ?? (session?.startedAt ? new Date(session.startedAt).getTime() : 0);
-  const remainingMs =
-    isMatchActive && session?.endsAt ? new Date(session.endsAt).getTime() - timerBase : 0;
-  const canRunCode = isMatchActive && remainingMs > 0 && !submitWin.isPending;
+  const startedAtMs = session?.startedAt ? new Date(session.startedAt).getTime() : 0;
+  const endsAtMs = session?.endsAt ? new Date(session.endsAt).getTime() : 0;
+  const countdownMs = isMatchActive && startedAtMs ? Math.max(0, startedAtMs - now) : 0;
+  const isCountdownActive = countdownMs > 0;
+  const countdownValue = Math.max(1, Math.min(5, Math.ceil(countdownMs / 1000)));
+  const timerBase = isCountdownActive && startedAtMs ? startedAtMs : now;
+  const remainingMs = isMatchActive && endsAtMs ? endsAtMs - timerBase : 0;
+  const canRunCode =
+    isMatchActive && !isCountdownActive && remainingMs > 0 && !submitWin.isPending;
   const currentUserWon = session?.winner?.clerkId === user?.id;
   const currentUserLost = session?.loser?.clerkId === user?.id;
   const wasForfeit = session?.resultReason === "forfeit";
@@ -302,6 +346,33 @@ function OneVOneSessionPage() {
           )}
         </div>
       </div>
+
+      {isCountdownActive && (
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-base-300/95 px-6 backdrop-blur-md">
+          <div className="w-full max-w-5xl rounded-lg border border-primary/30 bg-base-100 p-8 shadow-2xl">
+            <div className="mb-8 text-center">
+              <p className="text-sm font-bold uppercase text-primary">Match Found</p>
+              <h2 className="mt-2 text-3xl font-black text-base-content">{session.problemTitle}</h2>
+            </div>
+
+            <div className="grid items-center gap-6 md:grid-cols-[1fr_auto_1fr]">
+              <FaceoffPlayerCard player={session.host} label="Player 1" />
+
+              <div className="flex flex-col items-center justify-center rounded-lg border border-primary/20 bg-primary/10 px-8 py-6">
+                <p className="text-sm font-bold uppercase text-base-content/60">
+                  Starts in
+                </p>
+                <div className="my-3 flex size-24 items-center justify-center rounded-full bg-base-100 text-6xl font-black text-primary shadow-lg">
+                  {countdownValue}
+                </div>
+                <p className="text-2xl font-black text-base-content">VS</p>
+              </div>
+
+              <FaceoffPlayerCard player={session.participant} label="Player 2" />
+            </div>
+          </div>
+        </div>
+      )}
 
       {isCompleted && (
         <div className="fixed inset-0 z-[80] bg-base-300/95 backdrop-blur-md flex items-center justify-center px-6">
