@@ -27,3 +27,11 @@ export const useSubmitOneVOneWin = () => {
       toast.error(error?.response?.data?.message || "Could not submit match result"),
   });
 };
+
+export const useLeaveOneVOneSession = () => {
+  return useMutation({
+    mutationFn: oneVOneApi.leaveSession,
+    onError: (error) =>
+      toast.error(error?.response?.data?.message || "Could not leave this match"),
+  });
+};

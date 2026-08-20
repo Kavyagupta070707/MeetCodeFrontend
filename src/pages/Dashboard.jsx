@@ -8,6 +8,7 @@ import JoinSession from "../components/JoinSession.jsx";
 import StatsCards from "../components/StatsCards.jsx";
 import RecentSessions from "../components/RecentSessions.jsx";
 import CreateSessionModal from "../components/CreateSessionModel.jsx";
+import { useCurrentUser } from "../hooks/useCurrentUser.js";
 
 
 const Dashboard = () => {
@@ -18,6 +19,7 @@ const Dashboard = () => {
 
   const createSession = useCreateSession();
   const joinSession = useJoinSession();
+  const { data: currentUserData } = useCurrentUser();
   const { data: recentSessionsData, isLoading: loadingRecentSessions } = useRecentSessions();
   const { data: activeSessionsData, isLoading: loadingActiveSessions } = useActiveSessions()
 
@@ -72,6 +74,7 @@ const Dashboard = () => {
             <StatsCards
               activeSessionsCount={activeSessions.length}
               recentSessionsCount={recentSessions.length}
+              rating={currentUserData?.user?.rating ?? 1000}
             />
             <JoinSession
               sessionCode={sessionCode}

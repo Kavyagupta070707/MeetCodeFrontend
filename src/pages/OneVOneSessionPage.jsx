@@ -2,7 +2,15 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { useUser } from "@clerk/clerk-react";
 import toast from "react-hot-toast";
-import { Loader2Icon, SwordsIcon, TimerIcon, TrophyIcon, UsersIcon } from "lucide-react";
+import {
+  FlagIcon,
+  Loader2Icon,
+  LogOutIcon,
+  SwordsIcon,
+  TimerIcon,
+  TrophyIcon,
+  UsersIcon,
+} from "lucide-react";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import Navbar from "../components/Navbar.jsx";
 import CodeEditor from "../components/CodeEditor.jsx";
@@ -10,7 +18,11 @@ import OutputPanel from "../components/OutputPanel.jsx";
 import { PROBLEMS } from "../data/problems.js";
 import { executeCode } from "../lib/piston.js";
 import { getDifficultyBadgeClass } from "../lib/utils.js";
-import { useOneVOneSession, useSubmitOneVOneWin } from "../hooks/useOneVOne.js";
+import {
+  useLeaveOneVOneSession,
+  useOneVOneSession,
+  useSubmitOneVOneWin,
+} from "../hooks/useOneVOne.js";
 
 function normalizeOutput(output) {
   return (output || "")
@@ -64,6 +76,7 @@ function OneVOneSessionPage() {
     refetch,
   } = useOneVOneSession(id);
   const submitWin = useSubmitOneVOneWin();
+  const leaveSession = useLeaveOneVOneSession();
 
   const session = sessionData?.session;
   const problemData = useMemo(
@@ -79,6 +92,14 @@ function OneVOneSessionPage() {
   const canRunCode = isMatchActive && remainingMs > 0 && !submitWin.isPending;
   const currentUserWon = session?.winner?.clerkId === user?.id;
   const currentUserLost = session?.loser?.clerkId === user?.id;
+  const wasForfeit = session?.resultReason === "forfeit";
+  const currentPlayer =
+    session?.host?.clerkId === user?.id ? session?.host : session?.participant;
+  const resultRating = currentUserWon
+    ? session?.winner?.rating
+    : currentUserLost
+      ? session?.loser?.rating
+      : currentPlayer?.rating;
   const starterKey = `${session?.problemTitle || ""}:${selectedLanguage}`;
   const starterCode = problemData?.starterCode?.[selectedLanguage] || "";
   const code = codeByStarterKey[starterKey] ?? starterCode;
@@ -132,6 +153,20 @@ function OneVOneSessionPage() {
     }
 
     submitWin.mutate(id, {
+      onSuccess: () => refetch(),
+    });
+  };
+
+  const handleLeaveWaitingMatch = () => {
+    leaveSession.mutate(id, {
+      onSuccess: () => navigate("/one-v-one"),
+    });
+  };
+
+  const handleForfeitMatch = () => {
+    if (!confirm("Forfeit this 1v1 match? This will count as a loss.")) return;
+
+    leaveSession.mutate(id, {
       onSuccess: () => refetch(),
     });
   };
@@ -190,6 +225,18 @@ function OneVOneSessionPage() {
                   <div className="stat-value text-2xl">1/2</div>
                 </div>
               </div>
+              <button
+                className="btn btn-outline btn-error mt-6 gap-2"
+                onClick={handleLeaveWaitingMatch}
+                disabled={leaveSession.isPending}
+              >
+                {leaveSession.isPending ? (
+                  <Loader2Icon className="size-4 animate-spin" />
+                ) : (
+                  <LogOutIcon className="size-4" />
+                )}
+                Leave Match
+              </button>
             </div>
           </div>
         </div>
@@ -239,6 +286,20 @@ function OneVOneSessionPage() {
             <TimerIcon className="size-4" />
             {isCompleted ? "00:00" : formatTime(remainingMs)}
           </div>
+          {isMatchActive && (
+            <button
+              className="btn btn-error btn-sm gap-2"
+              onClick={handleForfeitMatch}
+              disabled={leaveSession.isPending}
+            >
+              {leaveSession.isPending ? (
+                <Loader2Icon className="size-4 animate-spin" />
+              ) : (
+                <FlagIcon className="size-4" />
+              )}
+              Forfeit
+            </button>
+          )}
         </div>
       </div>
 
@@ -286,11 +347,38 @@ function OneVOneSessionPage() {
                 {session.result === "draw"
                   ? `Time is over for ${session.problemTitle}.`
                   : currentUserWon
-                    ? `You solved ${session.problemTitle} in ${formatDuration(solvedDuration)}.`
-                    : `${session.winner?.name || "Your opponent"} solved ${
-                        session.problemTitle
-                      } first. Better luck next time.`}
+                    ? wasForfeit
+                      ? `${
+                          session.loser?.name || "Your opponent"
+                        } forfeited. You win this duel.`
+                      : `You solved ${session.problemTitle} in ${formatDuration(solvedDuration)}.`
+                    : wasForfeit && currentUserLost
+                      ? `You forfeited the duel. Better luck next time.`
+                      : `${session.winner?.name || "Your opponent"} solved ${
+                          session.problemTitle
+                        } first. Better luck next time.`}
               </p>
+
+              <div className="stats bg-base-100 shadow mt-6 w-full">
+                <div className="stat">
+                  <div className="stat-title">Rating Change</div>
+                  <div
+                    className={`stat-value text-3xl ${
+                      currentUserWon
+                        ? "text-success"
+                        : currentUserLost
+                          ? "text-error"
+                          : "text-warning"
+                    }`}
+                  >
+                    {currentUserWon ? "+10" : currentUserLost ? "-10" : "0"}
+                  </div>
+                </div>
+                <div className="stat">
+                  <div className="stat-title">Current Rating</div>
+                  <div className="stat-value text-3xl">{resultRating ?? 1000}</div>
+                </div>
+              </div>
 
               <button className="btn btn-primary mt-6 w-full" onClick={() => navigate("/one-v-one")}>
                 Back to 1v1

@@ -15,4 +15,9 @@ export const oneVOneApi = {
     const response = await axiosInstance.post(`/api/one-v-one/${id}/submit-win`);
     return response.data;
   },
+
+  leaveSession: async (id) => {
+    const response = await axiosInstance.post(`/api/one-v-one/${id}/leave`);
+    return response.data;
+  },
 };
