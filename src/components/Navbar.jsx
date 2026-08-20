@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router";
-import { BookOpenIcon, LayoutDashboardIcon, SparklesIcon,HeartHandshake } from "lucide-react";
+import { BookOpenIcon, LayoutDashboardIcon, SwordsIcon, HeartHandshake } from "lucide-react";
 import { UserButton } from "@clerk/clerk-react";
 
 function Navbar() {
@@ -7,7 +7,8 @@ function Navbar() {
 
   // console.log(location);
 
-  const isActive = (path) => location.pathname === path;
+  const isActive = (path) =>
+    location.pathname === path || (path === "/one-v-one" && location.pathname.startsWith(path));
 
   return (
     <nav className="bg-base-100/80 backdrop-blur-md border-b border-primary/20 sticky top-0 z-50 shadow-lg">
@@ -60,6 +61,23 @@ function Navbar() {
             <div className="flex items-center gap-x-2.5">
               <LayoutDashboardIcon className="size-4" />
               <span className="font-medium hidden sm:inline">Dashbord</span>
+            </div>
+          </Link>
+
+          <Link
+            to={"/one-v-one"}
+            className={`px-4 py-2.5 rounded-lg transition-all duration-200 
+              ${
+                isActive("/one-v-one")
+                  ? "bg-primary text-primary-content"
+                  : "hover:bg-base-200 text-base-content/70 hover:text-base-content"
+              }
+              
+              `}
+          >
+            <div className="flex items-center gap-x-2.5">
+              <SwordsIcon className="size-4" />
+              <span className="font-medium hidden sm:inline">1v1</span>
             </div>
           </Link>
 

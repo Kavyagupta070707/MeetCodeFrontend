@@ -451,6 +451,81 @@ int main() {
       cpp: "49\n1",
     },
   },
+
+  "trapping-rain-water": {
+    id: "trapping-rain-water",
+    title: "Trapping Rain Water",
+    difficulty: "Hard",
+    category: "Array â€¢ Two Pointers â€¢ Dynamic Programming",
+    description: {
+      text: "Given n non-negative integers representing an elevation map where the width of each bar is 1, compute how much water it can trap after raining.",
+      notes: [],
+    },
+    examples: [
+      {
+        input: "height = [0,1,0,2,1,0,1,3,2,1,2,1]",
+        output: "6",
+        explanation: "The elevation map traps 6 units of rain water.",
+      },
+      {
+        input: "height = [4,2,0,3,2,5]",
+        output: "9",
+      },
+    ],
+    constraints: ["n == height.length", "1 â‰¤ n â‰¤ 2 * 10â´", "0 â‰¤ height[i] â‰¤ 10âµ"],
+    starterCode: {
+      javascript: `function trap(height) {
+  // Write your solution here
+  
+}
+
+// Test cases
+console.log(trap([0,1,0,2,1,0,1,3,2,1,2,1])); // Expected: 6
+console.log(trap([4,2,0,3,2,5])); // Expected: 9`,
+      python: `def trap(height):
+    # Write your solution here
+    pass
+
+# Test cases
+print(trap([0,1,0,2,1,0,1,3,2,1,2,1]))  # Expected: 6
+print(trap([4,2,0,3,2,5]))  # Expected: 9`,
+      java: `class Solution {
+    public static int trap(int[] height) {
+        // Write your solution here
+        
+        return 0;
+    }
+    
+    public static void main(String[] args) {
+        System.out.println(trap(new int[]{0,1,0,2,1,0,1,3,2,1,2,1})); // Expected: 6
+        System.out.println(trap(new int[]{4,2,0,3,2,5})); // Expected: 9
+    }
+}`,
+      cpp: `#include <bits/stdc++.h>
+using namespace std;
+
+int trap(vector<int>& height) {
+    // Write your solution here
+    
+    return 0;
+}
+
+int main() {
+    vector<int> test1 = {0, 1, 0, 2, 1, 0, 1, 3, 2, 1, 2, 1};
+    vector<int> test2 = {4, 2, 0, 3, 2, 5};
+
+    cout << trap(test1) << endl; // Expected: 6
+    cout << trap(test2) << endl; // Expected: 9
+    return 0;
+}`,
+    },
+    expectedOutput: {
+      javascript: "6\n9",
+      python: "6\n9",
+      java: "6\n9",
+      cpp: "6\n9",
+    },
+  },
 };
 
 export const LANGUAGE_CONFIG = {

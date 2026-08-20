@@ -1,7 +1,15 @@
 import Editor from "@monaco-editor/react";
 import { Loader2Icon, PlayIcon } from "lucide-react";
 import { LANGUAGE_CONFIG } from "../data/problems.js";
-const CodeEditor = ({language, onLanguageChange, code, isrunning, onRunCode, onCodeChange}) => {
+const CodeEditor = ({
+  language,
+  onLanguageChange,
+  code,
+  isrunning,
+  onRunCode,
+  onCodeChange,
+  disabled = false,
+}) => {
   return (
     <div className="h-full min-h-0 bg-base-300 flex flex-col">
         <div className="flex items-center justify-between px-4 py-3 bg-base-100 border-t border-base-300">
@@ -9,6 +17,7 @@ const CodeEditor = ({language, onLanguageChange, code, isrunning, onRunCode, onC
               className="select select-sm"
               value={language}
               onChange={onLanguageChange}
+              disabled={disabled}
             >
                 {Object.entries(LANGUAGE_CONFIG).map(([Key,lang]) => (
                   <option key={Key} value={Key}>
@@ -17,7 +26,11 @@ const CodeEditor = ({language, onLanguageChange, code, isrunning, onRunCode, onC
                 ))}
             </select>
 
-            <button className="btn btn-sm btn-primary gap-2" onClick={onRunCode} disabled={isrunning}>
+            <button
+              className="btn btn-sm btn-primary gap-2"
+              onClick={onRunCode}
+              disabled={disabled || isrunning}
+            >
               {isrunning ? (<><Loader2Icon className="animate-spin h-4 w-4"/>Running...</>) : (<><PlayIcon className="h-4 w-4"/> Run Code</>)}
             </button>
         </div>
@@ -33,7 +46,8 @@ const CodeEditor = ({language, onLanguageChange, code, isrunning, onRunCode, onC
                 lineNumbers:"on",
                 scrollBeyondLastLine:false,
                 automaticLayout:true,
-                minimap:{enabled:false}
+                minimap:{enabled:false},
+                readOnly: disabled
               }
               }
               />

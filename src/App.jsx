@@ -8,6 +8,8 @@ import ProblemsPage from './pages/ProblemsPage.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import Problem from './pages/Problem.jsx';
 import SessionPage from './pages/SessionPage.jsx';
+import OneVOne from './pages/OneVOne.jsx';
+import OneVOneSessionPage from './pages/OneVOneSessionPage.jsx';
 function App() {
 
   const { isSignedIn, isLoaded } = useUser();
@@ -40,6 +42,16 @@ function App() {
           !isLoaded ? <div className="flex items-center justify-center py-20">
               <LoaderIcon className="h-120px w-120px animate-spin text-primary" />
             </div> : isSignedIn ? <SessionPage /> : <Navigate to="/" />
+        } />
+        <Route path="/one-v-one" element={
+          !isLoaded ? <div className="flex items-center justify-center py-20">
+              <LoaderIcon className="h-120px w-120px animate-spin text-primary" />
+            </div> : isSignedIn ? <OneVOne /> : <Navigate to="/" />
+        } />
+        <Route path="/one-v-one/session/:id" element={
+          !isLoaded ? <div className="flex items-center justify-center py-20">
+              <LoaderIcon className="h-120px w-120px animate-spin text-primary" />
+            </div> : isSignedIn ? <OneVOneSessionPage /> : <Navigate to="/" />
         } />
       </Routes>
       <Toaster />
