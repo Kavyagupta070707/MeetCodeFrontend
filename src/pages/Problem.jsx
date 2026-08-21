@@ -98,9 +98,9 @@ const Problem = () => {
       }
     }
   return (
-    <div className="h-full min-h-0 bg-base-100 flex flex-col overflow-hidden">
+    <div className="min-h-screen lg:h-full lg:min-h-0 bg-base-100 flex flex-col lg:overflow-hidden">
       <Navbar/>
-      <div className="flex-1 min-h-0 overflow-hidden">
+      <div className="hidden lg:block flex-1 min-h-0 overflow-hidden">
         <PanelGroup direction="horizontal">
           <Panel defaultSize={40} minSize={30}>
             <ProblemDescription
@@ -131,6 +131,29 @@ const Problem = () => {
             </PanelGroup>
           </Panel>
         </PanelGroup>
+      </div>
+
+      <div className="lg:hidden flex-1 overflow-y-auto bg-base-200">
+        <ProblemDescription
+          problem={curProblem}
+          currentProblemId={problemId}
+          onProblemChange={hndleproblemChange}
+          language={language}
+          allProblems={Object.values(PROBLEMS)}
+        />
+        <div className="h-[520px] border-t border-base-300">
+          <CodeEditor
+            language={language}
+            onLanguageChange={handlelanguageChange}
+            code={code}
+            isrunning={isrunning}
+            onRunCode={handleRunCode}
+            onCodeChange={setcode}
+          />
+        </div>
+        <div className="h-80 border-t border-base-300">
+          <OutputPanel output={output} />
+        </div>
       </div>
     </div>
   )

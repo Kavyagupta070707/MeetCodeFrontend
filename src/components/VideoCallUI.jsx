@@ -2,9 +2,11 @@ import {
   CameraIcon,
   CameraOffIcon,
   LogOutIcon,
+  Maximize2Icon,
   MessageSquareIcon,
   MicIcon,
   MicOffIcon,
+  Minimize2Icon,
   SendIcon,
   UsersIcon,
   XIcon,
@@ -25,6 +27,9 @@ function VideoCallUI({
   onToggleCamera,
   onSendMessage,
   onLeaveCall,
+  compact = false,
+  isFullscreen = false,
+  onToggleFullscreen,
 }) {
   const navigate = useNavigate();
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -42,6 +47,85 @@ function VideoCallUI({
     onLeaveCall();
     navigate("/dashboard");
   };
+
+  if (compact) {
+    return (
+      <div className="h-full rounded-lg border border-base-300 bg-base-100 shadow-2xl overflow-hidden">
+        <div className="relative h-full bg-neutral text-neutral-content">
+          <video ref={remoteVideoRef} autoPlay playsInline className="h-full w-full object-cover" />
+          {!remoteUser && (
+            <div className="absolute inset-0 flex items-center justify-center p-3 text-center">
+              <p className="text-sm font-semibold">
+                {isConnected ? "Waiting for video" : "Waiting for participant"}
+              </p>
+            </div>
+          )}
+
+          <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between bg-base-300/80 p-2 text-base-content">
+            <div className="rounded-lg bg-base-100/80 px-2 py-1 text-xs">
+              {isConnected ? "Connected" : "Waiting"}
+            </div>
+            {onToggleFullscreen && (
+              <button
+                onClick={onToggleFullscreen}
+                className="btn btn-xs btn-circle btn-ghost"
+                title={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+              >
+                {isFullscreen ? (
+                  <Minimize2Icon className="size-4" />
+                ) : (
+                  <Maximize2Icon className="size-4" />
+                )}
+              </button>
+            )}
+          </div>
+
+          <div
+            className={`absolute right-2 overflow-hidden rounded-lg border border-base-100/40 bg-neutral ${
+              isFullscreen ? "top-14 h-28 w-36" : "top-11 h-16 w-20"
+            }`}
+          >
+            <video
+              ref={localVideoRef}
+              autoPlay
+              playsInline
+              muted
+              className="h-full w-full object-cover"
+            />
+            {!isCameraOn && (
+              <div className="absolute inset-0 flex items-center justify-center bg-neutral">
+                <CameraOffIcon className="size-6 opacity-70" />
+              </div>
+            )}
+          </div>
+
+          <div className="absolute inset-x-0 bottom-0 flex justify-center gap-2 bg-base-300/85 p-2">
+            <button
+              onClick={onToggleMic}
+              className={`btn btn-xs btn-circle ${isMicOn ? "btn-ghost" : "btn-error"}`}
+              title={isMicOn ? "Mute microphone" : "Unmute microphone"}
+            >
+              {isMicOn ? <MicIcon className="size-4" /> : <MicOffIcon className="size-4" />}
+            </button>
+            <button
+              onClick={onToggleCamera}
+              className={`btn btn-xs btn-circle ${isCameraOn ? "btn-ghost" : "btn-error"}`}
+              title={isCameraOn ? "Turn camera off" : "Turn camera on"}
+            >
+              {isCameraOn ? (
+                <CameraIcon className="size-4" />
+              ) : (
+                <CameraOffIcon className="size-4" />
+              )}
+            </button>
+            <button onClick={handleLeave} className="btn btn-xs btn-circle btn-error" title="Leave call">
+              <LogOutIcon className="size-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full flex gap-3">

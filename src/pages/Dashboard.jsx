@@ -1,5 +1,10 @@
 import { useNavigate } from "react-router"
-import { useCreateSession, useJoinSession, useRecentSessions } from "../hooks/useSessions.js";
+import {
+  useActiveSessions,
+  useCreateSession,
+  useJoinSession,
+  useRecentSessions,
+} from "../hooks/useSessions.js";
 import Navbar from "../components/Navbar.jsx";
 import WelcomeSection from "../components/WelcomeSection.jsx";
 import { useState } from "react";
@@ -7,6 +12,7 @@ import toast from "react-hot-toast";
 import JoinSession from "../components/JoinSession.jsx";
 import StatsCards from "../components/StatsCards.jsx";
 import RecentSessions from "../components/RecentSessions.jsx";
+import ActiveSessions from "../components/ActiveSessions.jsx";
 import CreateSessionModal from "../components/CreateSessionModel.jsx";
 import { useCurrentUser } from "../hooks/useCurrentUser.js";
 
@@ -20,6 +26,7 @@ const Dashboard = () => {
   const createSession = useCreateSession();
   const joinSession = useJoinSession();
   const { data: currentUserData } = useCurrentUser();
+  const { data: activeSessionsData, isLoading: loadingActiveSessions } = useActiveSessions();
   const { data: recentSessionsData, isLoading: loadingRecentSessions } = useRecentSessions();
 
   const handleCreateRoom = async () => {
@@ -59,6 +66,7 @@ const Dashboard = () => {
   }
 
   const recentSessions = recentSessionsData?.sessions || [];
+  const activeSessions = activeSessionsData?.sessions || [];
 
   return (
     <>
@@ -80,6 +88,12 @@ const Dashboard = () => {
               />
             </div>
           </div>
+
+          <ActiveSessions
+            sessions={activeSessions}
+            isLoading={loadingActiveSessions}
+            onRejoinSession={(sessionId) => navigate(`/session/${sessionId}`)}
+          />
 
           <RecentSessions sessions={recentSessions} isLoading={loadingRecentSessions} />
         </main>

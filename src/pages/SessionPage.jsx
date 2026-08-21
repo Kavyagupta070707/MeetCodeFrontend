@@ -1,5 +1,5 @@
 import { useUser } from "@clerk/clerk-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import toast from "react-hot-toast";
 import { useEndSession, useSessionById } from "../hooks/useSessions";
@@ -16,12 +16,47 @@ import useWebRTCCall from "../hooks/useWebRTCCall";
 import useCollaborativeCode from "../hooks/useCollaborativeCode";
 import VideoCallUI from "../components/VideoCallUI";
 
+const FLOATING_VIDEO_WIDTH = 288;
+const FLOATING_VIDEO_HEIGHT = 208;
+const FLOATING_VIDEO_MARGIN = 16;
+
+function clampFloatingVideoPosition(position) {
+  if (typeof window === "undefined") return position;
+
+  const width = Math.min(FLOATING_VIDEO_WIDTH, window.innerWidth - FLOATING_VIDEO_MARGIN * 2);
+  const maxX = Math.max(FLOATING_VIDEO_MARGIN, window.innerWidth - width - FLOATING_VIDEO_MARGIN);
+  const maxY = Math.max(
+    FLOATING_VIDEO_MARGIN,
+    window.innerHeight - FLOATING_VIDEO_HEIGHT - FLOATING_VIDEO_MARGIN
+  );
+
+  return {
+    x: Math.min(Math.max(position.x, FLOATING_VIDEO_MARGIN), maxX),
+    y: Math.min(Math.max(position.y, FLOATING_VIDEO_MARGIN), maxY),
+  };
+}
+
+function getDefaultFloatingVideoPosition() {
+  if (typeof window === "undefined") return { x: FLOATING_VIDEO_MARGIN, y: FLOATING_VIDEO_MARGIN };
+
+  return clampFloatingVideoPosition({
+    x: window.innerWidth - FLOATING_VIDEO_WIDTH - FLOATING_VIDEO_MARGIN,
+    y: window.innerHeight - FLOATING_VIDEO_HEIGHT - FLOATING_VIDEO_MARGIN,
+  });
+}
+
 function SessionPage() {
   const navigate = useNavigate();
   const { id } = useParams();
   const { user } = useUser();
   const [output, setOutput] = useState(null);
   const [isRunning, setIsRunning] = useState(false);
+  const [isMobileLayout, setIsMobileLayout] = useState(() =>
+    typeof window !== "undefined" ? window.matchMedia("(max-width: 1023px)").matches : false
+  );
+  const [isVideoFullscreen, setIsVideoFullscreen] = useState(false);
+  const [floatingVideoPosition, setFloatingVideoPosition] = useState(getDefaultFloatingVideoPosition);
+  const floatingVideoDragRef = useRef(null);
 
   const { data: sessionData, isLoading: loadingSession, error: sessionError } = useSessionById(id);
 
@@ -50,6 +85,68 @@ function SessionPage() {
     user,
     isHost || isParticipant
   );
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 1023px)");
+    const handleChange = () => setIsMobileLayout(mediaQuery.matches);
+
+    handleChange();
+    mediaQuery.addEventListener("change", handleChange);
+
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, []);
+
+  useEffect(() => {
+    if (!isMobileLayout) {
+      setIsVideoFullscreen(false);
+      return;
+    }
+
+    const handleResize = () => {
+      setFloatingVideoPosition((position) => clampFloatingVideoPosition(position));
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, [isMobileLayout]);
+
+  const handleFloatingVideoDragStart = (event) => {
+    if (isVideoFullscreen) return;
+
+    floatingVideoDragRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      originX: floatingVideoPosition.x,
+      originY: floatingVideoPosition.y,
+    };
+
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const handleFloatingVideoDragMove = (event) => {
+    const drag = floatingVideoDragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+
+    setFloatingVideoPosition(
+      clampFloatingVideoPosition({
+        x: drag.originX + event.clientX - drag.startX,
+        y: drag.originY + event.clientY - drag.startY,
+      })
+    );
+  };
+
+  const handleFloatingVideoDragEnd = (event) => {
+    if (floatingVideoDragRef.current?.pointerId === event.pointerId) {
+      floatingVideoDragRef.current = null;
+    }
+
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  };
 
   // find the problem data based on session problem title
   const problemData = session?.problemTitle
@@ -173,16 +270,14 @@ function SessionPage() {
   }
 
   return (
-    <div className="h-screen bg-base-100 flex flex-col">
+    <div className="min-h-screen lg:h-screen bg-base-100 flex flex-col">
       <Navbar />
 
-      <div className="flex-1">
+      {!isMobileLayout && (
+      <div className="flex-1 min-h-0">
         <PanelGroup direction="horizontal">
-          {/* LEFT PANEL - CODE EDITOR & PROBLEM DETAILS */}
-          <Panel defaultSize={50} minSize={30}>
-            <PanelGroup direction="vertical">
-              {/* PROBLEM DSC PANEL */}
-              <Panel defaultSize={50} minSize={20}>
+          {/* LEFT PANEL - PROBLEM DETAILS */}
+          <Panel defaultSize={30} minSize={22}>
                 <div className="h-full overflow-y-auto bg-base-200">
                   {/* HEADER SECTION */}
                   <div className="p-6 bg-base-100 border-b border-base-300">
@@ -311,11 +406,12 @@ function SessionPage() {
                     )}
                   </div>
                 </div>
-              </Panel>
+          </Panel>
 
-              <PanelResizeHandle className="h-2 bg-base-300 hover:bg-primary transition-colors cursor-row-resize" />
+          <PanelResizeHandle className="w-2 bg-base-300 hover:bg-primary transition-colors cursor-col-resize" />
 
-              <Panel defaultSize={50} minSize={20}>
+          {/* CENTER PANEL - CODE EDITOR & OUTPUT */}
+          <Panel defaultSize={38} minSize={30}>
                 <PanelGroup direction="vertical">
                   <Panel defaultSize={70} minSize={30}>
                     <CodeEditor
@@ -334,14 +430,12 @@ function SessionPage() {
                     <OutputPanel output={output} />
                   </Panel>
                 </PanelGroup>
-              </Panel>
-            </PanelGroup>
           </Panel>
 
           <PanelResizeHandle className="w-2 bg-base-300 hover:bg-primary transition-colors cursor-col-resize" />
 
           {/* RIGHT PANEL - VIDEO CALLS & CHAT */}
-          <Panel defaultSize={50} minSize={30}>
+          <Panel defaultSize={32} minSize={24}>
             <div className="h-full bg-base-200 p-4 overflow-auto">
               {isInitializingCall ? (
                 <div className="h-full flex items-center justify-center">
@@ -384,6 +478,190 @@ function SessionPage() {
           </Panel>
         </PanelGroup>
       </div>
+      )}
+
+      {isMobileLayout && (
+      <div className="flex-1 overflow-y-auto bg-base-200 pb-64">
+        <div className="bg-base-100 border-b border-base-300 p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <h1 className="text-2xl font-bold text-base-content">
+                {session?.problemTitle || "Loading..."}
+              </h1>
+              {problemData?.category && (
+                <p className="text-sm text-base-content/60 mt-1">{problemData.category}</p>
+              )}
+              <p className="text-sm text-base-content/60 mt-2">
+                Host: {session?.host?.name || "Loading..."} â€¢{" "}
+                {session?.participant ? 2 : 1}/2 participants
+              </p>
+              {isHost && session?.sessionCode && (
+                <button
+                  className="btn btn-outline btn-sm gap-2 mt-3"
+                  onClick={handleCopySessionCode}
+                >
+                  <ClipboardIcon className="w-4 h-4" />
+                  Code {session.sessionCode}
+                </button>
+              )}
+            </div>
+
+            <div className="flex shrink-0 flex-col items-end gap-2">
+              <span className={`badge ${getDifficultyBadgeClass(session?.difficulty)}`}>
+                {session?.difficulty || "easy"}
+              </span>
+              {isHost && session?.status === "active" && (
+                <button
+                  onClick={handleEndSession}
+                  disabled={endSessionMutation.isPending}
+                  className="btn btn-error btn-xs gap-1"
+                >
+                  {endSessionMutation.isPending ? (
+                    <Loader2Icon className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <LogOutIcon className="w-3.5 h-3.5" />
+                  )}
+                  End
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="p-4 space-y-4">
+          {problemData?.description && (
+            <div className="bg-base-100 rounded-xl shadow-sm p-5 border border-base-300">
+              <h2 className="text-xl font-bold mb-4 text-base-content">Description</h2>
+              <div className="space-y-3 text-base leading-relaxed">
+                <p className="text-base-content/90">{problemData.description.text}</p>
+                {problemData.description.notes?.map((note, idx) => (
+                  <p key={idx} className="text-base-content/90">
+                    {note}
+                  </p>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {problemData?.examples && problemData.examples.length > 0 && (
+            <div className="bg-base-100 rounded-xl shadow-sm p-5 border border-base-300">
+              <h2 className="text-xl font-bold mb-4 text-base-content">Examples</h2>
+              <div className="space-y-4">
+                {problemData.examples.map((example, idx) => (
+                  <div key={idx}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="badge badge-sm">{idx + 1}</span>
+                      <p className="font-semibold text-base-content">Example {idx + 1}</p>
+                    </div>
+                    <div className="bg-base-200 rounded-lg p-4 font-mono text-sm space-y-1.5">
+                      <div className="flex gap-2">
+                        <span className="text-primary font-bold min-w-[70px]">Input:</span>
+                        <span>{example.input}</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <span className="text-secondary font-bold min-w-[70px]">Output:</span>
+                        <span>{example.output}</span>
+                      </div>
+                      {example.explanation && (
+                        <div className="pt-2 border-t border-base-300 mt-2">
+                          <span className="text-base-content/60 font-sans text-xs">
+                            <span className="font-semibold">Explanation:</span>{" "}
+                            {example.explanation}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {problemData?.constraints && problemData.constraints.length > 0 && (
+            <div className="bg-base-100 rounded-xl shadow-sm p-5 border border-base-300">
+              <h2 className="text-xl font-bold mb-4 text-base-content">Constraints</h2>
+              <ul className="space-y-2 text-base-content/90">
+                {problemData.constraints.map((constraint, idx) => (
+                  <li key={idx} className="flex gap-2">
+                    <span className="text-primary">â€¢</span>
+                    <code className="text-sm">{constraint}</code>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+
+        <div className="h-[520px] border-t border-base-300">
+          <CodeEditor
+            language={selectedLanguage}
+            code={code}
+            isrunning={isRunning}
+            onLanguageChange={handleLanguageChange}
+            onCodeChange={handleCodeChange}
+            onRunCode={handleRunCode}
+          />
+        </div>
+
+        <div className="h-80 border-t border-base-300">
+          <OutputPanel output={output} />
+        </div>
+      </div>
+      )}
+
+      {isMobileLayout && (
+      <div
+        className={`fixed z-50 ${
+          isVideoFullscreen
+            ? "inset-0 bg-base-300/95 p-3"
+            : "h-52 w-72 max-w-[calc(100vw-2rem)]"
+        }`}
+        style={
+          isVideoFullscreen
+            ? undefined
+            : {
+                left: floatingVideoPosition.x,
+                top: floatingVideoPosition.y,
+              }
+        }
+      >
+        {!isVideoFullscreen && (
+          <div
+            className="absolute -top-8 left-1/2 z-10 flex h-8 w-28 -translate-x-1/2 touch-none cursor-grab items-center justify-center rounded-t-lg border border-b-0 border-base-300 bg-base-100 shadow-lg active:cursor-grabbing"
+            onPointerDown={handleFloatingVideoDragStart}
+            onPointerMove={handleFloatingVideoDragMove}
+            onPointerUp={handleFloatingVideoDragEnd}
+            onPointerCancel={handleFloatingVideoDragEnd}
+            title="Drag video"
+          >
+            <span className="h-1 w-10 rounded-full bg-base-content/35" />
+          </div>
+        )}
+        {isInitializingCall ? (
+          <div className="h-full rounded-lg border border-base-300 bg-base-100 shadow-2xl flex items-center justify-center">
+            <Loader2Icon className="w-8 h-8 animate-spin text-primary" />
+          </div>
+        ) : session?.callId ? (
+          <VideoCallUI
+            compact
+            isFullscreen={isVideoFullscreen}
+            onToggleFullscreen={() => setIsVideoFullscreen((value) => !value)}
+            localVideoRef={localVideoRef}
+            remoteVideoRef={remoteVideoRef}
+            isConnected={isConnected}
+            isMicOn={isMicOn}
+            isCameraOn={isCameraOn}
+            messages={messages}
+            remoteUser={remoteUser}
+            currentUser={user}
+            onToggleMic={toggleMic}
+            onToggleCamera={toggleCamera}
+            onSendMessage={sendMessage}
+            onLeaveCall={leaveCall}
+          />
+        ) : null}
+      </div>
+      )}
     </div>
   );
 }

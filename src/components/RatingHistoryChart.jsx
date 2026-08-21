@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { TrendingUpIcon } from "lucide-react";
 
 function buildChartPoints(history, currentRating) {
@@ -45,6 +46,7 @@ function buildChartPoints(history, currentRating) {
       change: entry.change,
       reason: entry.reason,
       createdAt: entry.createdAt,
+      session: entry.session,
     }));
 
   if (points.length > 0 && points[0].rating !== 1000) {
@@ -69,7 +71,34 @@ function buildChartPoints(history, currentRating) {
   return [points[0], ...points.slice(-11)];
 }
 
+function formatPointDate(createdAt) {
+  if (!createdAt) return "Date unavailable";
+
+  return new Intl.DateTimeFormat("en", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(new Date(createdAt));
+}
+
+function getPointDate(point) {
+  return point?.session?.completedAt || point?.createdAt;
+}
+
+function formatReason(reason) {
+  if (reason === "win") return "Won 1v1 duel";
+  if (reason === "loss") return "Lost 1v1 duel";
+  if (reason === "forfeit") return "Forfeited duel";
+  return "Starting rating";
+}
+
+function formatChange(change) {
+  if (!change) return "0";
+  return change > 0 ? `+${change}` : change;
+}
+
 function RatingHistoryChart({ user }) {
+  const [hoveredPoint, setHoveredPoint] = useState(null);
   const points = buildChartPoints(user?.ratingHistory, user?.rating);
   const hasTrend = points.length >= 2;
   const ratings = points.map((point) => point.rating);
@@ -96,7 +125,7 @@ function RatingHistoryChart({ user }) {
       points.length === 1 ? chartLeft : chartLeft + (index / (points.length - 1)) * chartWidth;
     const y = chartTop + ((maxRating - point.rating) / range) * chartHeight;
 
-    return { ...point, x, y };
+    return { ...point, index, x, y };
   });
 
   const path = coordinates
@@ -110,6 +139,7 @@ function RatingHistoryChart({ user }) {
   const ratingDelta = previousPoint ? latestPoint.rating - previousPoint.rating : 0;
   const trendClass = ratingDelta >= 0 ? "stroke-success" : "stroke-error";
   const trendAreaClass = ratingDelta >= 0 ? "fill-success" : "fill-error";
+  const activePoint = hoveredPoint || coordinates[coordinates.length - 1];
 
   return (
     <div className="rounded-lg bg-base-100 border border-base-300 p-6">
@@ -123,6 +153,7 @@ function RatingHistoryChart({ user }) {
             <p className="text-sm text-base-content/60 mt-1">Your recent 1v1 rating movement.</p>
           </div>
         </div>
+
         <div className="text-left sm:text-right">
           <p className="text-sm text-base-content/60">Current rating</p>
           <p className="text-3xl font-black text-primary">{user?.rating ?? 1000}</p>
@@ -140,91 +171,149 @@ function RatingHistoryChart({ user }) {
         </div>
       </div>
 
-      <div className="rounded-lg bg-base-200/60 border border-base-300 p-4 overflow-hidden">
+      <div className="rounded-lg bg-base-200/60 border border-base-300 p-4">
         {hasTrend ? (
-          <>
-            <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-72" role="img">
-              {yTicks.map((tick) => {
-                const y = chartTop + ((maxRating - tick) / range) * chartHeight;
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px] xl:items-stretch">
+            <div className="min-w-0">
+              <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-72" role="img">
+                {yTicks.map((tick) => {
+                  const y = chartTop + ((maxRating - tick) / range) * chartHeight;
 
-                return (
-                  <g key={tick}>
-                    <line
-                      x1={chartLeft}
-                      y1={y}
-                      x2={chartRight}
-                      y2={y}
-                      className="stroke-base-content/10"
-                      strokeWidth="1"
+                  return (
+                    <g key={tick}>
+                      <line
+                        x1={chartLeft}
+                        y1={y}
+                        x2={chartRight}
+                        y2={y}
+                        className="stroke-base-content/10"
+                        strokeWidth="1"
+                      />
+                      <text
+                        x={chartLeft - 12}
+                        y={y + 4}
+                        textAnchor="end"
+                        fontSize="12"
+                        className="fill-current text-base-content/55"
+                      >
+                        {tick}
+                      </text>
+                    </g>
+                  );
+                })}
+                <line
+                  x1={chartLeft}
+                  y1={chartTop}
+                  x2={chartLeft}
+                  y2={chartBottom}
+                  className="stroke-base-content/20"
+                  strokeWidth="1.5"
+                />
+                <line
+                  x1={chartLeft}
+                  y1={chartBottom}
+                  x2={chartRight}
+                  y2={chartBottom}
+                  className="stroke-base-content/20"
+                  strokeWidth="1.5"
+                />
+                <path d={areaPath} className={`${trendAreaClass} opacity-10`} />
+                <path
+                  d={path}
+                  fill="none"
+                  className={trendClass}
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                {coordinates.map((point, index) => (
+                  <g key={`${point.createdAt}-${index}`}>
+                    <circle
+                      cx={point.x}
+                      cy={point.y}
+                      r="8"
+                      className={`fill-base-100 ${trendClass}`}
+                      strokeWidth="3"
                     />
                     <text
-                      x={chartLeft - 12}
-                      y={y + 4}
-                      textAnchor="end"
+                      x={point.x}
+                      y={point.y - 14}
+                      textAnchor="middle"
+                      fontSize="12"
+                      className="fill-current text-base-content/80 font-semibold"
+                    >
+                      {point.rating}
+                    </text>
+                    <circle
+                      cx={point.x}
+                      cy={point.y}
+                      r="20"
+                      fill="transparent"
+                      className="cursor-pointer"
+                      tabIndex="0"
+                      onMouseEnter={() => setHoveredPoint(point)}
+                      onMouseLeave={() => setHoveredPoint(null)}
+                      onFocus={() => setHoveredPoint(point)}
+                      onBlur={() => setHoveredPoint(null)}
+                    />
+                    <text
+                      x={point.x}
+                      y={chartBottom + 24}
+                      textAnchor="middle"
                       fontSize="12"
                       className="fill-current text-base-content/55"
                     >
-                      {tick}
+                      {index === 0 ? "Start" : `M${index}`}
                     </text>
                   </g>
-                );
-              })}
-              <line
-                x1={chartLeft}
-                y1={chartTop}
-                x2={chartLeft}
-                y2={chartBottom}
-                className="stroke-base-content/20"
-                strokeWidth="1.5"
-              />
-              <line
-                x1={chartLeft}
-                y1={chartBottom}
-                x2={chartRight}
-                y2={chartBottom}
-                className="stroke-base-content/20"
-                strokeWidth="1.5"
-              />
-              <path d={areaPath} className={`${trendAreaClass} opacity-10`} />
-              <path
-                d={path}
-                fill="none"
-                className={trendClass}
-                strokeWidth="4"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              {coordinates.map((point, index) => (
-                <g key={`${point.createdAt}-${index}`}>
-                  <circle
-                    cx={point.x}
-                    cy={point.y}
-                    r="8"
-                    className={`fill-base-100 ${trendClass}`}
-                    strokeWidth="3"
-                  />
-                  <text
-                    x={point.x}
-                    y={point.y - 14}
-                    textAnchor="middle"
-                    fontSize="12"
-                    className="fill-current text-base-content/80 font-semibold"
+                ))}
+              </svg>
+            </div>
+            {activePoint && (
+              <div className="rounded-lg border border-base-content/10 bg-base-100 p-5 xl:min-h-full">
+                <div>
+                  <p className="text-sm text-base-content/60">
+                    {activePoint.index === 0 ? "Rating Start" : `Match ${activePoint.index}`}
+                  </p>
+                  <p className="mt-1 text-lg font-black text-base-content">
+                    {activePoint.session?.problemTitle || formatReason(activePoint.reason)}
+                  </p>
+                  <p className="mt-1 text-sm text-base-content/55">
+                    {activePoint.session?.difficulty
+                      ? `${activePoint.session.difficulty} duel - ${formatReason(
+                          activePoint.reason
+                        )}`
+                      : activePoint.index === 0
+                        ? "Initial rating baseline"
+                        : "Rated 1v1 rating movement"}
+                  </p>
+                </div>
+
+                <div className="mt-6">
+                  <p className="text-sm text-base-content/60">Date</p>
+                  <p className="mt-1 font-bold text-base-content">
+                    {formatPointDate(getPointDate(activePoint))}
+                  </p>
+                </div>
+
+                <div className="mt-6">
+                  <p className="text-sm text-base-content/60">Rating</p>
+                  <p className="mt-1 text-2xl font-black text-primary">{activePoint.rating}</p>
+                  <p
+                    className={`text-sm font-black ${
+                      activePoint.change > 0
+                        ? "text-success"
+                        : activePoint.change < 0
+                          ? "text-error"
+                          : "text-base-content/55"
+                    }`}
                   >
-                    {point.rating}
-                  </text>
-                  <text
-                    x={point.x}
-                    y={chartBottom + 24}
-                    textAnchor="middle"
-                    fontSize="12"
-                    className="fill-current text-base-content/55"
-                  >
-                    {index === 0 ? "Start" : `M${index}`}
-                  </text>
-                </g>
-              ))}
-            </svg>
-          </>
+                    {formatChange(activePoint.change)}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
         ) : (
           <div className="min-h-56 flex flex-col items-center justify-center text-center">
             <p className="text-xl font-bold text-base-content">No rating trend yet</p>

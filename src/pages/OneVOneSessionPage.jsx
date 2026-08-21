@@ -302,11 +302,11 @@ function OneVOneSessionPage() {
   }
 
   return (
-    <div className="h-screen bg-base-100 flex flex-col">
+    <div className="min-h-screen lg:h-screen bg-base-100 flex flex-col">
       <Navbar />
 
-      <div className="px-4 py-3 bg-base-100 border-b border-base-300 flex items-center justify-between">
-        <div className="flex items-center gap-3">
+      <div className="px-4 py-3 bg-base-100 border-b border-base-300 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-center gap-3">
           <div className="p-2 bg-primary/10 rounded-xl">
             <SwordsIcon className="size-5 text-primary" />
           </div>
@@ -459,7 +459,7 @@ function OneVOneSessionPage() {
         </div>
       )}
 
-      <div className="flex-1 min-h-0">
+      <div className="hidden lg:block flex-1 min-h-0">
         <PanelGroup direction="horizontal">
           <Panel defaultSize={45} minSize={30}>
             <div className="h-full min-h-0 overflow-y-auto bg-base-200">
@@ -564,6 +564,98 @@ function OneVOneSessionPage() {
             </PanelGroup>
           </Panel>
         </PanelGroup>
+      </div>
+
+      <div className="lg:hidden flex-1 overflow-y-auto bg-base-200">
+        <div className="p-4 bg-base-100 border-b border-base-300">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h1 className="text-2xl font-bold text-base-content">{problemData.title}</h1>
+              <p className="text-sm text-base-content/60 mt-1">{problemData.category}</p>
+            </div>
+            <span className={`badge ${getDifficultyBadgeClass(problemData.difficulty)}`}>
+              {problemData.difficulty}
+            </span>
+          </div>
+        </div>
+
+        <div className="p-4 space-y-4">
+          <div className="bg-base-100 rounded-xl shadow-sm p-5 border border-base-300">
+            <h2 className="text-xl font-bold mb-4 text-base-content">Description</h2>
+            <div className="space-y-3 text-base leading-relaxed">
+              <p className="text-base-content/90">{problemData.description.text}</p>
+              {problemData.description.notes.map((note, index) => (
+                <p key={index} className="text-base-content/90">
+                  {note}
+                </p>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-base-100 rounded-xl shadow-sm p-5 border border-base-300">
+            <h2 className="text-xl font-bold mb-4 text-base-content">Examples</h2>
+            <div className="space-y-4">
+              {problemData.examples.map((example, index) => (
+                <div key={index}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="badge badge-sm">{index + 1}</span>
+                    <p className="font-semibold text-base-content">Example {index + 1}</p>
+                  </div>
+                  <div className="bg-base-200 rounded-lg p-4 font-mono text-sm space-y-1.5">
+                    <div className="flex gap-2">
+                      <span className="text-primary font-bold min-w-[70px]">Input:</span>
+                      <span>{example.input}</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <span className="text-primary font-bold min-w-[70px]">Output:</span>
+                      <span>{example.output}</span>
+                    </div>
+                    {example.explanation && (
+                      <div className="pt-2 border-t border-base-300 mt-2">
+                        <span className="text-base-content/60 font-sans text-xs">
+                          <span className="font-semibold">Explanation:</span> {example.explanation}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-base-100 rounded-xl shadow-sm p-5 border border-base-300">
+            <h2 className="text-xl font-bold mb-4 text-base-content">Constraints</h2>
+            <ul className="space-y-2 text-base-content/90">
+              {problemData.constraints.map((constraint, index) => (
+                <li key={index} className="flex gap-2">
+                  <span className="text-primary">â€¢</span>
+                  <code className="text-sm">{constraint}</code>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        <div className="h-[520px] border-t border-base-300">
+          <CodeEditor
+            language={selectedLanguage}
+            code={code}
+            isrunning={isRunning || submitWin.isPending}
+            onLanguageChange={handleLanguageChange}
+            onCodeChange={(value) =>
+              setCodeByStarterKey((previousCode) => ({
+                ...previousCode,
+                [starterKey]: value || "",
+              }))
+            }
+            onRunCode={handleRunCode}
+            disabled={!canRunCode && !isRunning}
+          />
+        </div>
+
+        <div className="h-80 border-t border-base-300">
+          <OutputPanel output={output} />
+        </div>
       </div>
     </div>
   );
