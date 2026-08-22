@@ -3,7 +3,7 @@ export const PROBLEMS = {
     id: "two-sum",
     title: "Two Sum",
     difficulty: "Easy",
-    category: "Array - Hash Table",
+    category: "Array \u2022 Hash Table",
     description: {
       text: "Given an array of integers nums and an integer target, return indices of the two numbers in the array such that they add up to target.",
       notes: [
@@ -106,7 +106,7 @@ int main() {
     id: "reverse-string",
     title: "Reverse String",
     difficulty: "Easy",
-    category: "String - Two Pointers",
+    category: "String \u2022 Two Pointers",
     description: {
       text: "Write a function that reverses a string. The input string is given as an array of characters s.",
       notes: ["You must do this by modifying the input array in-place with O(1) extra memory."],
@@ -206,7 +206,7 @@ int main() {
     id: "valid-palindrome",
     title: "Valid Palindrome",
     difficulty: "Easy",
-    category: "String - Two Pointers",
+    category: "String \u2022 Two Pointers",
     description: {
       text: "A phrase is a palindrome if, after converting all uppercase letters into lowercase letters and removing all non-alphanumeric characters, it reads the same forward and backward. Alphanumeric characters include letters and numbers.",
       notes: ["Given a string s, return true if it is a palindrome, or false otherwise."],
@@ -290,7 +290,7 @@ int main() {
     id: "maximum-subarray",
     title: "Maximum Subarray",
     difficulty: "Medium",
-    category: "Array - Dynamic Programming",
+    category: "Array \u2022 Dynamic Programming",
     description: {
       text: "Given an integer array nums, find the subarray with the largest sum, and return its sum.",
       notes: [],
@@ -376,7 +376,7 @@ int main() {
     id: "container-with-most-water",
     title: "Container With Most Water",
     difficulty: "Medium",
-    category: "Array - Two Pointers",
+    category: "Array \u2022 Two Pointers",
     description: {
       text: "You are given an integer array height of length n. There are n vertical lines drawn such that the two endpoints of the ith line are (i, 0) and (i, height[i]).",
       notes: [
@@ -456,7 +456,7 @@ int main() {
     id: "trapping-rain-water",
     title: "Trapping Rain Water",
     difficulty: "Hard",
-    category: "Array - Two Pointers - Dynamic Programming",
+    category: "Array \u2022 Two Pointers \u2022 Dynamic Programming",
     description: {
       text: "Given n non-negative integers representing an elevation map where the width of each bar is 1, compute how much water it can trap after raining.",
       notes: [],
