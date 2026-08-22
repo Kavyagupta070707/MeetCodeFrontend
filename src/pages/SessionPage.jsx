@@ -290,7 +290,7 @@ function SessionPage() {
                           <p className="text-base-content/60 mt-1">{problemData.category}</p>
                         )}
                         <p className="text-base-content/60 mt-2">
-                          Host: {session?.host?.name || "Loading..."} •{" "}
+                          Host: {session?.host?.name || "Loading..."} |{" "}
                           {session?.participant ? 2 : 1}/2 participants
                         </p>
                         {isHost && session?.sessionCode && (
@@ -397,7 +397,7 @@ function SessionPage() {
                         <ul className="space-y-2 text-base-content/90">
                           {problemData.constraints.map((constraint, idx) => (
                             <li key={idx} className="flex gap-2">
-                              <span className="text-primary">•</span>
+                              <span className="text-primary">-</span>
                               <code className="text-sm">{constraint}</code>
                             </li>
                           ))}
@@ -492,7 +492,7 @@ function SessionPage() {
                 <p className="text-sm text-base-content/60 mt-1">{problemData.category}</p>
               )}
               <p className="text-sm text-base-content/60 mt-2">
-                Host: {session?.host?.name || "Loading..."} â€¢{" "}
+                Host: {session?.host?.name || "Loading..."} |{" "}
                 {session?.participant ? 2 : 1}/2 participants
               </p>
               {isHost && session?.sessionCode && (
@@ -583,7 +583,7 @@ function SessionPage() {
               <ul className="space-y-2 text-base-content/90">
                 {problemData.constraints.map((constraint, idx) => (
                   <li key={idx} className="flex gap-2">
-                    <span className="text-primary">â€¢</span>
+                    <span className="text-primary">-</span>
                     <code className="text-sm">{constraint}</code>
                   </li>
                 ))}

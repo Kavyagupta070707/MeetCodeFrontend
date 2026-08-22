@@ -525,7 +525,7 @@ function OneVOneSessionPage() {
                   <ul className="space-y-2 text-base-content/90">
                     {problemData.constraints.map((constraint, index) => (
                       <li key={index} className="flex gap-2">
-                        <span className="text-primary">•</span>
+                        <span className="text-primary">-</span>
                         <code className="text-sm">{constraint}</code>
                       </li>
                     ))}
@@ -628,7 +628,7 @@ function OneVOneSessionPage() {
             <ul className="space-y-2 text-base-content/90">
               {problemData.constraints.map((constraint, index) => (
                 <li key={index} className="flex gap-2">
-                  <span className="text-primary">â€¢</span>
+                  <span className="text-primary">-</span>
                   <code className="text-sm">{constraint}</code>
                 </li>
               ))}
